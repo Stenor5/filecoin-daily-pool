@@ -3,15 +3,15 @@ import { deployments, ethers } from "hardhat";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
 import { Ship } from "../utils";
-import { BigNumber, BytesLike } from "ethers";
-import { PromiseOrValue } from "../types/common";
-import { DailyPool, DailyPool__factory } from "../types";
+import { BigNumber } from "ethers";
+import { DailyPool, DailyPool__factory, TestUSDT, TestUSDT__factory } from "../types";
 
 chai.use(solidity);
 const { expect, assert } = chai;
 
 let ship: Ship;
 let dailyPool: DailyPool;
+let testUSDT: TestUSDT;
 
 let deployer: SignerWithAddress;
 let alice: SignerWithAddress;
@@ -30,6 +30,7 @@ const setup = deployments.createFixture(async (hre) => {
 });
 
 describe("Daily pool unit tests", () => {
+  let depositAmount: BigNumber;
   beforeEach(async () => {
     const scaffold = await setup();
 
@@ -38,11 +39,14 @@ describe("Daily pool unit tests", () => {
     vault = scaffold.accounts.vault;
 
     dailyPool = await ship.connect(DailyPool__factory);
-    const depositAmount = await dailyPool.depositAmount();
-    console.log(BigNumber.from(depositAmount).toNumber());
+    testUSDT = await ship.connect(TestUSDT__factory);
+    console.log((await testUSDT.balanceOf(deployer.address)).toString());
+    depositAmount = await dailyPool.depositAmount();
   });
 
   describe("Deposit", () => {
-    it("emits an event after deposit fund", async () => {});
+    it("emits an event after deposit fund", async () => {
+      console.log(BigNumber.from(depositAmount).toNumber());
+    });
   });
 });
