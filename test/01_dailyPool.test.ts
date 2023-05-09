@@ -39,8 +39,6 @@ describe("Daily pool unit tests", () => {
     vault = scaffold.accounts.vault;
 
     dailyPool = await ship.connect(DailyPool__factory);
-    testUSDT = await ship.connect(TestUSDT__factory);
-    console.log((await testUSDT.balanceOf(deployer.address)).toString());
     depositAmount = await dailyPool.depositAmount();
   });
 

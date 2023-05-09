@@ -35,7 +35,6 @@ contract DailyPool is ReentrancyGuard, Ownable {
   }
 
   struct UserInfo {
-    bool isDeposited;
     bool isAnswered;
     string encryptedAnswer;
     uint256 prize;
@@ -78,18 +77,6 @@ contract DailyPool is ReentrancyGuard, Ownable {
     emit NewRoundOpened(currentRoundId, roundInfos[currentRoundId], block.timestamp);
   }
 
-  ///@notice Function to deposit usdt for users
-  function deposit() external {
-    require(
-      !roundUserInfos[currentRoundId][msg.sender].isDeposited,
-      "Already deposited for this round"
-    );
-    usdtContract.transferFrom(msg.sender, address(this), depositAmount);
-    roundUserInfos[currentRoundId][msg.sender].isDeposited = true;
-    roundInfos[currentRoundId].prize += depositAmount;
-    currentPoolAmount += depositAmount;
-  }
-
   ///@notice Function to finish prev round and start next one, executed by admin(backend)
   ///@param _nextQuestion new question
   ///@param _encryptedNextAnswer new encrypted answer
@@ -124,22 +111,25 @@ contract DailyPool is ReentrancyGuard, Ownable {
   ///@notice Function to submit answer from user side
   ///@param _encryptedAnswer answer that is submitted by user
   ///@dev encrypted from dapp using public key
-  function submitAnswer(string calldata _encryptedAnswer) external {
+  function submitAnswer(string calldata _encryptedAnswer) external nonReentrant {
     if (
       block.timestamp > startTimestamp + 1 days ||
       block.timestamp < startTimestamp + 1 days - 1 minutes
     ) {
       revert NotAnswerTime();
     }
-    require(roundUserInfos[currentRoundId][msg.sender].isDeposited, "Deposit fund first");
     require(
       !roundUserInfos[currentRoundId][msg.sender].isAnswered,
       "Already answered for this round"
     );
+    usdtContract.transferFrom(msg.sender, address(this), depositAmount);
+    roundInfos[currentRoundId].prize += depositAmount;
+    roundInfos[currentRoundId].attendance++;
+    currentPoolAmount += depositAmount;
+
     // save users' encrypted answers and increase attendance
     roundUserInfos[currentRoundId][msg.sender].encryptedAnswer = _encryptedAnswer;
     roundUserInfos[currentRoundId][msg.sender].isAnswered = true;
-    roundInfos[currentRoundId].attendance++;
 
     emit AnswerSubmitted(currentRoundId, msg.sender, _encryptedAnswer);
   }
@@ -158,6 +148,11 @@ contract DailyPool is ReentrancyGuard, Ownable {
     roundUserInfos[currentRoundId - 1][msg.sender].prize = _prize;
     currentPoolAmount -= _prize;
     emit PrizeClaimed(currentRoundId - 1, msg.sender, _prize);
+  }
+
+  ///@notice Function to set minimum number of participants
+  function setMinAttendance(uint24 _newMinAttendance) external onlyOwner {
+    minAttendance = _newMinAttendance;
   }
 
   ///@notice Function to send platform fee for dao and donation
