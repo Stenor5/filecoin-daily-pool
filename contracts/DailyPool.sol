@@ -74,13 +74,9 @@ contract DailyPool is ReentrancyGuard, Ownable {
     string calldata _encryptedNextAnswer,
     string calldata _answer
   ) external onlyOwner {
-    // require(block.timestamp >= startTimestamp + 1 days, "Not finished previous round");
+    require(block.timestamp >= startTimestamp + 1 days, "Not finished previous round");
     startTimestamp = block.timestamp;
-    if (roundInfos[currentRoundId].attendance < minAttendance) {
-      // make the question again for same round
-      roundInfos[currentRoundId].question = _nextQuestion;
-      roundInfos[currentRoundId].encryptedAnswer = _encryptedNextAnswer;
-    } else {
+    if (roundInfos[currentRoundId].attendance > minAttendance) {
       lockedPoolAmount += roundInfos[currentRoundId].prize; // add unclaimed prize to next pool
       roundInfos[currentRoundId].answer = _answer;
       _transferDaoPrize(currentRoundId); // transfer dao prize
@@ -97,12 +93,12 @@ contract DailyPool is ReentrancyGuard, Ownable {
   ///@param _encryptedAnswer answer that is submitted by user
   ///@dev encrypted from dapp using public key
   function submitAnswer(string calldata _encryptedAnswer) external nonReentrant {
-    // if (
-    //   block.timestamp > startTimestamp + 1 days ||
-    //   block.timestamp < startTimestamp + 1 days - 2 minutes
-    // ) {
-    //   revert NotAnswerTime();
-    // }
+    if (
+      block.timestamp > startTimestamp + 1 days ||
+      block.timestamp < startTimestamp + 1 days - 2 minutes
+    ) {
+      revert NotAnswerTime();
+    }
     require(
       !roundUserInfos[currentRoundId][msg.sender].isAnswered,
       "Already answered for this round"
