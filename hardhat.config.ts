@@ -39,7 +39,7 @@ const config: HardhatUserConfig = {
       tags: ["local", "test"],
     },
     testnet: {
-      url: node_url("hyperspace"),
+      url: node_url("calibration"),
       accounts: [PRIVATE_KEY],
       tags: ["dev", "live"],
     },
@@ -74,6 +74,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://hyperspace.filfox.info/api/v1",
           browserURL: "https://hyperspace.filfox.info/en/",
+        },
+      },
+      {
+        network: "Filecoin - Calibration testnet",
+        chainId: 314159,
+        urls: {
+          apiURL: "https://calibration.filfox.info/api/v1",
+          browserURL: "https://calibration.filfox.info/en/",
         },
       },
       {

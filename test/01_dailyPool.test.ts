@@ -34,7 +34,7 @@ const setup = deployments.createFixture(async (hre) => {
 
 describe("Daily pool unit tests", () => {
   let depositAmount: BigNumber;
-  const oneDayInSeconds: number = 24 * 60 * 60;
+  const roundDurationInSecond: number = 60 * 60;
 
   beforeEach(async () => {
     const scaffold = await setup();
@@ -54,24 +54,24 @@ describe("Daily pool unit tests", () => {
       await testUSDT.approve(dailyPool.address, depositAmount);
     });
     it("Emits an event after submit answer", async () => {
-      await time.increase(oneDayInSeconds - 60);
+      await time.increase(roundDurationInSecond - 60);
       expect(await dailyPool.submitAnswer("answer 1")).to.emit(dailyPool, "AnswerSubmitted");
     });
     it("Should be answer time", async () => {
       const error = "NotAnswerTime";
       await expect(dailyPool.submitAnswer("any answer")).to.be.revertedWith(error);
-      await time.increase(oneDayInSeconds);
+      await time.increase(roundDurationInSecond);
       await expect(dailyPool.submitAnswer("any answer")).to.be.revertedWith(error);
     });
     it("Should be return already answered error", async () => {
       const error = "Already answered for this round";
-      await time.increase(oneDayInSeconds - 60);
+      await time.increase(roundDurationInSecond - 60);
       expect(await dailyPool.submitAnswer("answer 1")).to.emit(dailyPool, "AnswerSubmitted");
       await expect(dailyPool.submitAnswer("any answer")).to.be.revertedWith(error);
     });
     it("Check round and user status after answer submitted", async () => {
       const submittedAnswer = "answer 1";
-      await time.increase(oneDayInSeconds - 60);
+      await time.increase(roundDurationInSecond - 60);
       expect(await dailyPool.submitAnswer(submittedAnswer)).to.emit(dailyPool, "AnswerSubmitted");
       const roundInfo = await dailyPool.roundInfos(0);
       expect(roundInfo.prize).to.be.equal(depositAmount);
@@ -96,7 +96,7 @@ describe("Daily pool unit tests", () => {
       await dailyPool.setMinAttendance(2);
     });
     it("Emits an event after execute next round", async () => {
-      await time.increase(oneDayInSeconds - 60);
+      await time.increase(roundDurationInSecond - 60);
       await dailyPool.connect(alice).submitAnswer(submittedAnswer1);
       await dailyPool.connect(bob).submitAnswer(submittedAnswer2);
       await time.increase(60);
@@ -111,7 +111,7 @@ describe("Daily pool unit tests", () => {
     });
     it("Should be reverted with Not finished previous round", async () => {
       const error = "Not finished previous round";
-      await time.increase(oneDayInSeconds - 60);
+      await time.increase(roundDurationInSecond - 60);
       await dailyPool.connect(alice).submitAnswer(submittedAnswer1);
       await dailyPool.connect(bob).submitAnswer(submittedAnswer2);
       await expect(
@@ -119,7 +119,7 @@ describe("Daily pool unit tests", () => {
       ).to.be.revertedWith(error);
     });
     it("Simulate skip daily prize", async () => {
-      await time.increase(oneDayInSeconds - 60);
+      await time.increase(roundDurationInSecond - 60);
       await dailyPool.connect(alice).submitAnswer(submittedAnswer1);
       const currentRoundId = await dailyPool.currentRoundId();
       await time.increase(60);
@@ -136,7 +136,7 @@ describe("Daily pool unit tests", () => {
     });
     it("Simulate next daily prize", async () => {
       const msigAddress = "0x307cc392Ef5b722A6ED0e0b9F1cb93Ba6a0e956E";
-      await time.increase(oneDayInSeconds - 60);
+      await time.increase(roundDurationInSecond - 60);
       await dailyPool.connect(alice).submitAnswer(submittedAnswer1);
       await dailyPool.connect(bob).submitAnswer(submittedAnswer2);
       const currentRoundId = await dailyPool.currentRoundId();
@@ -176,7 +176,7 @@ describe("Daily pool unit tests", () => {
 
       // set min attendance as 2
       await dailyPool.setMinAttendance(2);
-      await time.increase(oneDayInSeconds - 60);
+      await time.increase(roundDurationInSecond - 60);
       await dailyPool.connect(alice).submitAnswer(submittedAnswer1);
       await dailyPool.connect(bob).submitAnswer(submittedAnswer2);
       await time.increase(60);

@@ -23,3 +23,6 @@ types
 /z
 deployments/localhost
 deployments/hardhat
+
+0-privateKey.pem
+0-publicKey.pem
