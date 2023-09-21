@@ -28,5 +28,5 @@ const func: DeployFunction = async (hre) => {
 };
 
 export default func;
-func.tags = ["pool", "all"];
-func.dependencies = ["usdt"];
+func.tags = ["test-pool", "test-all"];
+func.dependencies = ["test-usdt"];
